@@ -22,7 +22,7 @@ struct s_block {
  *
  * Return: a suitable block(>= desired size). otherwise NULL (if heap is empty)
  */
-t_block fblk(t_block *last, size_t s)
+t_block find_blk(t_block *last, size_t s)
 {
         t_block b;
 
@@ -40,7 +40,7 @@ t_block fblk(t_block *last, size_t s)
  * @last: last allocated block, to extend the heap
  * 
 */
-t_block extend_heap(t_block *last)
+t_block extend_heap(t_block *last, size_t s)
 {
         // empty heap
         t_block new;
@@ -52,8 +52,34 @@ t_block extend_heap(t_block *last)
         }
 
         new->size = s;
-        new->free = 1;
+        new->free = 0;
+
+        if (last != NULL)
+        {
+                last->next = new;
+        }
         return new;
+}
+
+
+/*
+ * splblk- splits a free block if wide enough to hold new allocation plus a new block(atleast BLOCKSIZE+4).
+ * @b: free block to be split
+ * @s: size of the new allocation
+*/
+void split_blk(t_block *b, size_t s)
+{
+        t_block free;
+
+        size_t old_b_size = b->size;
+        // the new free block is moved further after
+        free = b->data + s;
+        free->size = old_b_size - s - BLOCK_SIZE;
+        free->next = b->next;
+
+        b->size = s;
+        b->next = free;
+        b->free = 1;
 }
 
 int main(int argc, char *argv[])
